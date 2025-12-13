@@ -1,6 +1,6 @@
-[![Go Reference](https://pkg.go.dev/badge/github.com/xescugc/ebitest.svg)](https://pkg.go.dev/github.com/xescugc/ebitest)
-
 # Ebitest
+
+[![Go Reference](https://pkg.go.dev/badge/github.com/xescugc/ebitest.svg)](https://pkg.go.dev/github.com/xescugc/ebitest)
 
 Ebitest is a lib to test Ebiten UI through inputs and asserting on what should be on the screen.
 
