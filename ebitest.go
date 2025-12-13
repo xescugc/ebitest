@@ -210,6 +210,7 @@ func (e *Ebitest) findSelector(ss interface{}) (*Selector, bool) {
 				sely := sel.Image().Bounds().Dy()
 
 				sel.rect = image.Rect(x, y, x+selx, y+sely)
+				sel.pingPong = e.pingPong
 				return sel, true
 			}
 		}
