@@ -38,7 +38,6 @@ func NewFromImage(i image.Image) *Selector {
 }
 
 func (s *Selector) Click() {
-	s.pingPong.Ping()
 	cx, cy := s.center()
 	robotgo.Move(cx, cy)
 	robotgo.Click("left", true)
