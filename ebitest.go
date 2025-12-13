@@ -25,9 +25,10 @@ const (
 type Ebitest struct {
 	game     *Game
 	t        *testing.T
-	pingPong *PingPong
+	PingPong *PingPong
 
 	ctxCancelFn context.CancelFunc
+	endGameChan chan struct{}
 
 	options options
 }
@@ -66,13 +67,18 @@ func Run(t *testing.T, game ebiten.Game, opts ...optionsFn) *Ebitest {
 	ctx, cfn := context.WithCancel(context.TODO())
 	pingPong := NewPingPong()
 	g := newGame(ctx, game, pingPong)
-	go ebiten.RunGame(g)
+	endGameChan := make(chan struct{})
+	go func() {
+		ebiten.RunGame(g)
+		endGameChan <- struct{}{}
+	}()
 
 	et := &Ebitest{
 		game:        g,
 		ctxCancelFn: cfn,
 		t:           t,
-		pingPong:    pingPong,
+		PingPong:    pingPong,
+		endGameChan: endGameChan,
 	}
 
 	op := options{}
@@ -82,7 +88,7 @@ func Run(t *testing.T, game ebiten.Game, opts ...optionsFn) *Ebitest {
 	}
 	et.options = op
 
-	et.pingPong.Ping()
+	et.PingPong.Ping()
 
 	if et.options.dumpErrorImages {
 		os.RemoveAll(baseDumpFoler)
@@ -95,13 +101,15 @@ func Run(t *testing.T, game ebiten.Game, opts ...optionsFn) *Ebitest {
 // Close stops the underlying game
 func (e *Ebitest) Close() {
 	e.ctxCancelFn()
+	<-e.endGameChan
+	close(e.endGameChan)
 }
 
 // Should checks if selector(s) is present in the game and returns it
 // s can be a: 'string', 'image.Image', '*ebiten.Image' and '*ebitest.Selector'
 func (e *Ebitest) Should(s interface{}) (*Selector, bool) {
 	e.t.Helper()
-	e.pingPong.Ping()
+	e.PingPong.Ping()
 
 	sel, ok := e.findSelector(s)
 	if !ok {
@@ -121,7 +129,7 @@ func (e *Ebitest) Should(s interface{}) (*Selector, bool) {
 // s can be a: 'string', 'image.Image', '*ebiten.Image' and '*ebitest.Selector'
 func (e *Ebitest) ShouldNot(s interface{}) bool {
 	e.t.Helper()
-	e.pingPong.Ping()
+	e.PingPong.Ping()
 
 	sel, ok := e.findSelector(s)
 	if !ok {
@@ -142,7 +150,7 @@ func (e *Ebitest) ShouldNot(s interface{}) bool {
 // s can be a: 'string', 'image.Image', '*ebiten.Image' and '*ebitest.Selector'
 func (e *Ebitest) Must(s interface{}) *Selector {
 	e.t.Helper()
-	e.pingPong.Ping()
+	e.PingPong.Ping()
 
 	sel, ok := e.findSelector(s)
 	if !ok {
@@ -163,7 +171,7 @@ func (e *Ebitest) Must(s interface{}) *Selector {
 // s can be a: 'string', 'image.Image', '*ebiten.Image' and '*ebitest.Selector'
 func (e *Ebitest) MustNot(s interface{}) {
 	e.t.Helper()
-	e.pingPong.Ping()
+	e.PingPong.Ping()
 
 	sel, ok := e.findSelector(s)
 	if !ok {
@@ -210,6 +218,7 @@ func (e *Ebitest) findSelector(ss interface{}) (*Selector, bool) {
 				sely := sel.Image().Bounds().Dy()
 
 				sel.rect = image.Rect(x, y, x+selx, y+sely)
+				sel.PingPong = e.PingPong
 				return sel, true
 			}
 		}

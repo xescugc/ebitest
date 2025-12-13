@@ -1,3 +1,5 @@
+[![Go Reference](https://pkg.go.dev/badge/github.com/xescugc/ebitest.svg)](https://pkg.go.dev/github.com/xescugc/ebitest)
+
 # Ebitest
 
 Ebitest is a lib to test Ebiten UI through inputs and asserting on what should be on the screen.
@@ -105,6 +107,27 @@ And if you open the `_ebitest_dump/019b1537-1c60-7041-ad54-0297ea4b0eef.png` (on
 <p align="center">
     <img src="docs/error_image.png" width=50% height=50%>
 </p>
+
+## Run it on a CI
+
+If the CI has low resources (like GitHub Actions) it'll most likely fail (check `Known issues#2`) but you
+can check what I install for it to run on the [`go.yml`](.github/workflows/go.yml)
+
+## Known issues and Limitations
+
+1/ You cannot have more than 1 test case
+
+Basically you cannot run more than one test as even calling `Ebitest.Close()` there are some resources missing and you may get an error like
+
+> panic: ebiten: NewImage cannot be called after RunGame finishes [recovered, repanicked]
+
+2/ Some false positive/negative
+
+Due to the nature of this test (the game is running on a goroutine) there may be the case in which an input is not registered by the game
+so an expectation may randomly fail.
+
+I kind of fixed it using a custom [PingPong](./ping_pong.go) that basically forces a context switch but it still fails in low resource like
+GitHub [Actions](https://github.com/xescugc/ebitest/actions) for example.
 
 ## Plans
 

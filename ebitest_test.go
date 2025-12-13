@@ -4,18 +4,28 @@ import (
 	"image/color"
 	"testing"
 
+	"github.com/go-vgo/robotgo"
+	"github.com/stretchr/testify/assert"
 	"github.com/xescugc/ebitest"
+	"github.com/xescugc/ebitest/testdata"
 )
 
-func TestGameUI(t *testing.T) {
-	face, _ := loadFont(20)
-	g := newGameUI()
+func TestGameButton(t *testing.T) {
+	face, _ := testdata.LoadFont(20)
+	g := testdata.NewGame()
 	et := ebitest.Run(t, g,
 		ebitest.WithFace(face),
 		ebitest.WithColor(color.White),
 		ebitest.WithDumpErrorImages(),
 	)
 	defer et.Close()
+
+	robotgo.Move(0, 0)
+	robotgo.Click("left", true)
+
+	assert.True(t, g.Clicked)
+
+	et.PingPong.Ping()
 
 	text1 := "Click Me"
 	text2 := "Clicked Me"
@@ -25,6 +35,6 @@ func TestGameUI(t *testing.T) {
 
 	t1s.Click()
 
-	et.Should(text1)
+	et.ShouldNot(text1)
 	et.Should(text2)
 }
