@@ -4,7 +4,7 @@ help: ## Show this help
 
 .PHONY: test
 test:
-	@xvfb-run go test ./...
+	@xvfb-run go test ./... $(ARGS)
 
 .PHONY: pprof
 pprof:
