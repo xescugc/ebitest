@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/go-vgo/robotgo"
+	"github.com/stretchr/testify/assert"
 	"github.com/xescugc/ebitest"
 	"github.com/xescugc/ebitest/testdata"
-	"github.com/zeebo/assert"
 )
 
 func TestGameButton(t *testing.T) {
