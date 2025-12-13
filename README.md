@@ -103,7 +103,7 @@ make: *** [Makefile:7: test] Error 1
 And if you open the `_ebitest_dump/019b1537-1c60-7041-ad54-0297ea4b0eef.png` (on the current path) you see
 
 <p align="center">
-    <img src="docs/error_image.png" width=25% height=25%>
+    <img src="docs/error_image.png" width=50% height=50%>
 </p>
 
 ## Plans

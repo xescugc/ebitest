@@ -57,6 +57,13 @@ func newGameUI() *gameui {
 			Idle: color.White,
 		}),
 
+		widget.ButtonOpts.TextPadding(&widget.Insets{
+			Left:   30,
+			Right:  30,
+			Top:    5,
+			Bottom: 5,
+		}),
+
 		// add a handler that reacts to clicking the button.
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 			button.Text().Label = text2
