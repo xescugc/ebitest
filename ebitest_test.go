@@ -7,6 +7,7 @@ import (
 	"github.com/go-vgo/robotgo"
 	"github.com/xescugc/ebitest"
 	"github.com/xescugc/ebitest/testdata"
+	"github.com/zeebo/assert"
 )
 
 func TestGameButton(t *testing.T) {
@@ -21,6 +22,8 @@ func TestGameButton(t *testing.T) {
 
 	robotgo.Move(0, 0)
 	robotgo.Click("left", true)
+
+	assert.True(t, g.Clicked)
 
 	et.PingPong.Ping()
 
