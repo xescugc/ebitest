@@ -1,6 +1,6 @@
 module github.com/xescugc/ebitest
 
-go 1.25.1
+go 1.25
 
 require (
 	github.com/ebitenui/ebitenui v0.7.2
