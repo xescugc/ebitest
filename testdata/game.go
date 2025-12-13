@@ -1,4 +1,4 @@
-package ebitest_test
+package testdata
 
 import (
 	"bytes"
@@ -10,22 +10,25 @@ import (
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/widget"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"golang.org/x/image/font/gofont/goregular"
 )
 
 // Game object used by ebiten.
-type gameui struct {
+type Game struct {
 	ui  *ebitenui.UI
 	btn *widget.Button
+
+	Clicked bool
 }
 
-func newGameUI() *gameui {
+func NewGame() *Game {
 	// load images for button states: idle, hover, and pressed.
 	buttonImage, _ := loadButtonImage()
 
 	// load button text font.
-	face, _ := loadFont(20)
+	face, _ := LoadFont(20)
 
 	// construct a new container that serves as the root of the UI hierarchy.
 	rootContainer := widget.NewContainer(
@@ -78,7 +81,7 @@ func newGameUI() *gameui {
 		Container: rootContainer,
 	}
 
-	game := gameui{
+	game := Game{
 		ui:  &ui,
 		btn: button,
 	}
@@ -87,12 +90,16 @@ func newGameUI() *gameui {
 }
 
 // Layout implements Game.
-func (g *gameui) Layout(outsideWidth int, outsideHeight int) (int, int) {
+func (g *Game) Layout(outsideWidth int, outsideHeight int) (int, int) {
 	return outsideWidth, outsideHeight
 }
 
 // Update implements Game.
-func (g *gameui) Update() error {
+func (g *Game) Update() error {
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		g.Clicked = true
+	}
+
 	// update the UI
 	g.ui.Update()
 
@@ -100,13 +107,12 @@ func (g *gameui) Update() error {
 }
 
 // Draw implements Ebiten's Draw method.
-func (g *gameui) Draw(screen *ebiten.Image) {
+func (g *Game) Draw(screen *ebiten.Image) {
 	// draw the UI onto the screen
 	g.ui.Draw(screen)
 }
 
 func loadButtonImage() (*widget.ButtonImage, error) {
-
 	idle := image.NewBorderedNineSliceColor(color.NRGBA{R: 170, G: 170, B: 180, A: 255}, color.NRGBA{90, 90, 90, 255}, 3)
 
 	hover := image.NewBorderedNineSliceColor(color.NRGBA{R: 130, G: 130, B: 150, A: 255}, color.NRGBA{70, 70, 70, 255}, 3)
@@ -120,7 +126,7 @@ func loadButtonImage() (*widget.ButtonImage, error) {
 	}, nil
 }
 
-func loadFont(size float64) (text.Face, error) {
+func LoadFont(size float64) (text.Face, error) {
 	s, err := text.NewGoTextFaceSource(bytes.NewReader(goregular.TTF))
 	if err != nil {
 		log.Fatal(err)

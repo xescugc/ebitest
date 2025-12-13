@@ -13,7 +13,7 @@ type Selector struct {
 	img  image.Image
 	rect image.Rectangle
 
-	pingPong *PingPong
+	PingPong *PingPong
 }
 
 func NewFromText(txt string, f text.Face, c color.Color) *Selector {
@@ -41,7 +41,7 @@ func (s *Selector) Click() {
 	cx, cy := s.center()
 	robotgo.Move(cx, cy)
 	robotgo.Click("left", true)
-	s.pingPong.Ping()
+	s.PingPong.Ping()
 }
 
 func (s *Selector) center() (int, int) {
