@@ -25,6 +25,6 @@ func TestGameUI(t *testing.T) {
 
 	t1s.Click()
 
-	et.Should(text1)
+	et.ShouldNot(text1)
 	et.Should(text2)
 }
