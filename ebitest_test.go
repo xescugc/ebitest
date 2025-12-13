@@ -3,7 +3,6 @@ package ebitest_test
 import (
 	"image/color"
 	"testing"
-	"time"
 
 	"github.com/go-vgo/robotgo"
 	"github.com/xescugc/ebitest"
@@ -11,7 +10,6 @@ import (
 )
 
 func TestGameButton(t *testing.T) {
-	time.Sleep(time.Second * 10)
 	face, _ := testdata.LoadFont(20)
 	g := testdata.NewGame()
 	et := ebitest.Run(t, g,
