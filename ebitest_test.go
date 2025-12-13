@@ -3,6 +3,7 @@ package ebitest_test
 import (
 	"image/color"
 	"testing"
+	"time"
 
 	"github.com/xescugc/ebitest"
 )
@@ -24,6 +25,7 @@ func TestGameUI(t *testing.T) {
 	et.ShouldNot(text2)
 
 	t1s.Click()
+	time.Sleep(time.Second)
 
 	et.ShouldNot(text1)
 	et.Should(text2)
