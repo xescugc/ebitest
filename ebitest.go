@@ -16,6 +16,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -24,7 +25,6 @@ const (
 
 type Ebitest struct {
 	game     *Game
-	t        *testing.T
 	PingPong *PingPong
 
 	ctxCancelFn context.CancelFunc
@@ -63,7 +63,7 @@ func WithDumpErrorImages() optionsFn {
 	}
 }
 
-func Run(t *testing.T, game ebiten.Game, opts ...optionsFn) *Ebitest {
+func Run(game ebiten.Game, opts ...optionsFn) *Ebitest {
 	ctx, cfn := context.WithCancel(context.TODO())
 	pingPong := NewPingPong()
 	g := newGame(ctx, game, pingPong)
@@ -76,7 +76,6 @@ func Run(t *testing.T, game ebiten.Game, opts ...optionsFn) *Ebitest {
 	et := &Ebitest{
 		game:        g,
 		ctxCancelFn: cfn,
-		t:           t,
 		PingPong:    pingPong,
 		endGameChan: endGameChan,
 	}
@@ -107,18 +106,19 @@ func (e *Ebitest) Close() {
 
 // Should checks if selector(s) is present in the game and returns it
 // s can be a: 'string', 'image.Image', '*ebiten.Image' and '*ebitest.Selector'
-func (e *Ebitest) Should(s interface{}) (*Selector, bool) {
-	e.t.Helper()
+func (e *Ebitest) Should(t *testing.T, s interface{}) (*Selector, bool) {
+	t.Helper()
 	e.PingPong.Ping()
+	sc := e.game.GetScreen()
 
-	sel, ok := e.findSelector(s)
+	sel, ok := e.findSelector(sc, s)
 	if !ok {
 		msg := "selector not found"
 		if e.options.dumpErrorImages {
-			p := dumpErrorImages(e.game.GetScreen(), sel.Image())
+			p := dumpErrorImages(sc, sel.Image())
 			msg += "\nimage at: " + p
 		}
-		assert.Fail(e.t, msg)
+		assert.Fail(t, msg)
 		return nil, false
 	}
 
@@ -127,39 +127,41 @@ func (e *Ebitest) Should(s interface{}) (*Selector, bool) {
 
 // ShouldNot checks if selector(s) is not present in the game
 // s can be a: 'string', 'image.Image', '*ebiten.Image' and '*ebitest.Selector'
-func (e *Ebitest) ShouldNot(s interface{}) bool {
-	e.t.Helper()
+func (e *Ebitest) ShouldNot(t *testing.T, s interface{}) bool {
+	t.Helper()
 	e.PingPong.Ping()
+	sc := e.game.GetScreen()
 
-	sel, ok := e.findSelector(s)
+	sel, ok := e.findSelector(sc, s)
 	if !ok {
 		return true
 	}
 
 	msg := "selector found"
 	if e.options.dumpErrorImages {
-		p := dumpErrorImages(e.game.GetScreen(), sel.Image())
+		p := dumpErrorImages(sc, sel.Image())
 		msg += "\nimage at: " + p
 	}
-	assert.Fail(e.t, msg)
+	assert.Fail(t, msg)
 	return false
 }
 
 // Must checks if selector(s) is present in the game and returns it.
 // If it's not present it'll fail the test
 // s can be a: 'string', 'image.Image', '*ebiten.Image' and '*ebitest.Selector'
-func (e *Ebitest) Must(s interface{}) *Selector {
-	e.t.Helper()
+func (e *Ebitest) Must(t *testing.T, s interface{}) *Selector {
+	t.Helper()
 	e.PingPong.Ping()
+	sc := e.game.GetScreen()
 
-	sel, ok := e.findSelector(s)
+	sel, ok := e.findSelector(sc, s)
 	if !ok {
 		msg := "selector not found"
 		if e.options.dumpErrorImages {
-			p := dumpErrorImages(e.game.GetScreen(), sel.Image())
+			p := dumpErrorImages(sc, sel.Image())
 			msg += "\nimage at: " + p
 		}
-		assert.Fail(e.t, msg)
+		require.Fail(t, msg)
 		return nil
 	}
 
@@ -169,21 +171,22 @@ func (e *Ebitest) Must(s interface{}) *Selector {
 // MustNot checks if selector(s) is not present in the game.
 // If it's present it'll fail the test
 // s can be a: 'string', 'image.Image', '*ebiten.Image' and '*ebitest.Selector'
-func (e *Ebitest) MustNot(s interface{}) {
-	e.t.Helper()
+func (e *Ebitest) MustNot(t *testing.T, s interface{}) {
+	t.Helper()
 	e.PingPong.Ping()
+	sc := e.game.GetScreen()
 
-	sel, ok := e.findSelector(s)
+	sel, ok := e.findSelector(sc, s)
 	if !ok {
 		return
 	}
 
 	msg := "selector found"
 	if e.options.dumpErrorImages {
-		p := dumpErrorImages(e.game.GetScreen(), sel.Image())
+		p := dumpErrorImages(sc, sel.Image())
 		msg += "\nimage at: " + p
 	}
-	assert.Fail(e.t, msg)
+	require.Fail(t, msg)
 	return
 }
 
@@ -204,16 +207,14 @@ func (e *Ebitest) getSelector(s interface{}) *Selector {
 }
 
 // findSelector returns a Selector from ss if found
-func (e *Ebitest) findSelector(ss interface{}) (*Selector, bool) {
+func (e *Ebitest) findSelector(sc image.Image, ss interface{}) (*Selector, bool) {
 	sel := e.getSelector(ss)
 
-	s := e.game.GetScreen()
-
-	sx := s.Bounds().Dx()
-	sy := s.Bounds().Dy()
+	sx := sc.Bounds().Dx()
+	sy := sc.Bounds().Dy()
 	for x := range sx {
 		for y := range sy {
-			if hasImageAt(s, sel.Image(), x, y) {
+			if hasImageAt(sc, sel.Image(), x, y) {
 				selx := sel.Image().Bounds().Dx()
 				sely := sel.Image().Bounds().Dy()
 
@@ -244,7 +245,8 @@ func dumpErrorImages(s, i image.Image) string {
 	ip := filepath.Join(baseDumpFoler, u.String()+".png")
 	writeImage(ip, img)
 
-	return ip
+	wd, _ := os.Getwd()
+	return filepath.Join(wd, ip)
 }
 
 // writeImage writes on the path the image i

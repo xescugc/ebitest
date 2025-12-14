@@ -47,7 +47,8 @@ Initialize Ebitest with `ebitest.Run(t, g)` with `t *testing.Test` and `g ebiten
 * `WithFace|Color`: To set the default values when the using the assertions with a text value.
 * `WithDumpErrorImages`: Which will generate an image when a test fail with the failed assertion on the folder `_ebitest_dump/`
 
-If you need some extra interactions that are not implemented (yet) you can directly use [robotgo](https://github.com/go-vgo/robotgo).
+If you need some extra interactions that are not implemented (yet) you can directly use [robotgo](https://github.com/go-vgo/robotgo),
+but those may fail as they are not synchronized internally so I would recommend opening an issue and I'll add it.
 
 ## Example
 
@@ -66,7 +67,7 @@ import (
 func TestGameUI(t *testing.T) {
 	face, _ := loadFont(20)
 	g := newGameUI()
-	et := ebitest.Run(t, g,
+	et := ebitest.Run(g,
 		ebitest.WithFace(face),
 		ebitest.WithColor(color.White),
 		ebitest.WithDumpErrorImages(),
@@ -76,13 +77,13 @@ func TestGameUI(t *testing.T) {
 	text1 := "Click Me"
 	text2 := "Clicked Me"
 
-	t1s, _ := et.Should(text1)
-	et.ShouldNot(text2)
+	t1s, _ := et.Should(t, text1)
+	et.ShouldNot(t, text2)
 
 	t1s.Click()
 
-	et.Should(text1)
-	et.Should(text2)
+	et.Should(t, text1)
+	et.Should(t, text2)
 }
 ```
 
@@ -126,11 +127,10 @@ Basically you cannot run more than one test as even calling `Ebitest.Close()` th
 Due to the nature of this test (the game is running on a goroutine) there may be the case in which an input is not registered by the game
 so an expectation may randomly fail.
 
-I kind of fixed it using a custom [PingPong](./ping_pong.go) that basically forces a context switch but it still fails in low resource like
-GitHub [Actions](https://github.com/xescugc/ebitest/actions) for example.
+I kind of fixed it (100 consecutive test pass) using a custom [PingPong](./ping_pong.go) and [TicTacToe](./tic_tac_toe.go) that basically forces a context switch and synchronizes Input+Game.Update+Game.Draw but it still fails in low resource like GitHub [Actions](https://github.com/xescugc/ebitest/actions) for example.
 
 ## Plans
 
 * Add more helpers for assertions (like animations)
-* Add more inputs (potentially just port all the [robotgo](https://github.com/go-vgo/robotgo) lib)
+* Add more inputs (potentially just port all the [robotgo](https://github.com/go-vgo/robotgo) lib) synchronized
 * Others
