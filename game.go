@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 type Game struct {
@@ -16,6 +17,8 @@ type Game struct {
 	ctx  context.Context
 
 	pingPong *PingPong
+
+	clickTTT *TicTacToe
 }
 
 func newGame(ctx context.Context, g ebiten.Game, pp *PingPong) *Game {
@@ -23,6 +26,7 @@ func newGame(ctx context.Context, g ebiten.Game, pp *PingPong) *Game {
 		game:     g,
 		ctx:      ctx,
 		pingPong: pp,
+		clickTTT: NewTicTacToe(),
 	}
 }
 
@@ -50,8 +54,11 @@ func (g *Game) Update() error {
 	case <-g.ctx.Done():
 		return ebiten.Termination
 	default:
-		return g.game.Update()
 	}
+	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+		g.clickTTT.Tac()
+	}
+	return g.game.Update()
 }
 
 // Draw implements Ebiten's Draw method.
@@ -61,6 +68,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	g.SetScreen(ebitenImageToImage(screen))
 
 	g.pingPong.Pong()
+	g.pingPong.ClickPong(g.clickTTT)
+	g.clickTTT.Toe()
 
 	return
 }

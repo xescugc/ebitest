@@ -4,7 +4,6 @@ import (
 	"image"
 	"image/color"
 
-	"github.com/go-vgo/robotgo"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
@@ -39,9 +38,9 @@ func NewFromImage(i image.Image) *Selector {
 
 func (s *Selector) Click() {
 	cx, cy := s.center()
-	robotgo.Move(cx, cy)
-	robotgo.Click("left", true)
-	s.PingPong.Ping()
+	//robotgo.Move(cx, cy)
+	//robotgo.Click("left")
+	s.PingPong.ClickPing(Ball{X: cx, Y: cy})
 }
 
 func (s *Selector) center() (int, int) {

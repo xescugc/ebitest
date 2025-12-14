@@ -13,7 +13,7 @@ import (
 func TestGameButton(t *testing.T) {
 	face, _ := testdata.LoadFont(20)
 	g := testdata.NewGame()
-	et := ebitest.Run(t, g,
+	et := ebitest.Run(g,
 		ebitest.WithFace(face),
 		ebitest.WithColor(color.White),
 		ebitest.WithDumpErrorImages(),
@@ -30,11 +30,11 @@ func TestGameButton(t *testing.T) {
 	text1 := "Click Me"
 	text2 := "Clicked Me"
 
-	t1s, _ := et.Should(text1)
-	et.ShouldNot(text2)
+	t1s, _ := et.Should(t, text1)
+	et.ShouldNot(t, text2)
 
 	t1s.Click()
 
-	et.ShouldNot(text1)
-	et.Should(text2)
+	et.ShouldNot(t, text1)
+	et.Should(t, text2)
 }
