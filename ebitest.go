@@ -190,6 +190,14 @@ func (e *Ebitest) MustNot(t *testing.T, s interface{}) {
 	return
 }
 
+// KeyTap taps all the keys at once
+func (e *Ebitest) KeyTap(keys ...ebiten.Key) {
+	if len(keys) == 0 {
+		return
+	}
+	e.PingPong.KeyTapPing(Ball{KeyTap: BallKeyTap{Keys: keys}})
+}
+
 // getSelector converts s to the right Selector initialization
 func (e *Ebitest) getSelector(s interface{}) *Selector {
 	switch v := s.(type) {

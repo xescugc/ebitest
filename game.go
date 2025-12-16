@@ -18,15 +18,19 @@ type Game struct {
 
 	pingPong *PingPong
 
-	clickTTT *TicTacToe
+	keyTapKeys []ebiten.Key
+
+	clickTTT  *TicTacToe
+	keyTapTTT *TicTacToe
 }
 
 func newGame(ctx context.Context, g ebiten.Game, pp *PingPong) *Game {
 	return &Game{
-		game:     g,
-		ctx:      ctx,
-		pingPong: pp,
-		clickTTT: NewTicTacToe(),
+		game:      g,
+		ctx:       ctx,
+		pingPong:  pp,
+		clickTTT:  NewTicTacToe(),
+		keyTapTTT: NewTicTacToe(),
 	}
 }
 
@@ -55,9 +59,24 @@ func (g *Game) Update() error {
 		return ebiten.Termination
 	default:
 	}
-	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
-		g.clickTTT.Tac()
+	// Check for click
+	if g.clickTTT.HasTic() {
+		if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+			g.clickTTT.Tac()
+		}
 	}
+
+	// Check for Pressed
+	if g.keyTapTTT.HasTic() {
+		pressed := true
+		for _, k := range g.keyTapKeys {
+			pressed = pressed && ebiten.IsKeyPressed(k)
+		}
+		if pressed {
+			g.keyTapTTT.Tac()
+		}
+	}
+
 	return g.game.Update()
 }
 
@@ -69,7 +88,10 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	g.pingPong.Pong()
 	g.pingPong.ClickPong(g.clickTTT)
+	g.pingPong.KeyTapPong(g.keyTapTTT, g)
+
 	g.clickTTT.Toe()
+	g.keyTapTTT.Toe()
 
 	return
 }

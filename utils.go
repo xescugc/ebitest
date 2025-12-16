@@ -6,6 +6,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+// ebitenImageToImage converts an ebiten.Image to an image.Image
 func ebitenImageToImage(ei *ebiten.Image) image.Image {
 	b := ei.Bounds()
 	img := image.NewGray(image.Rect(0, 0, b.Dx(), b.Dy()))
