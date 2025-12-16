@@ -92,6 +92,4 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	g.clickTTT.Toe()
 	g.keyTapTTT.Toe()
-
-	return
 }

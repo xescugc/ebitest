@@ -20,7 +20,8 @@ import (
 )
 
 const (
-	baseDumpFoler = "_ebitest_dump/"
+	baseDumpFoler    = "_ebitest_dump/"
+	findAllSelectors = true
 )
 
 type Ebitest struct {
@@ -187,7 +188,12 @@ func (e *Ebitest) MustNot(t *testing.T, s interface{}) {
 		msg += "\nimage at: " + p
 	}
 	require.Fail(t, msg)
-	return
+}
+
+// GetAll returns all the repeated instances of s or none if nothing is found
+func (e *Ebitest) GetAll(s interface{}) []*Selector {
+	sc := e.game.GetScreen()
+	return e.findSelectors(sc, s, findAllSelectors)
 }
 
 // KeyTap taps all the keys at once
@@ -203,10 +209,10 @@ func (e *Ebitest) getSelector(s interface{}) *Selector {
 	switch v := s.(type) {
 	case string:
 		return NewFromText(v, e.options.face, e.options.color)
-	case image.Image:
-		return NewFromImage(v)
 	case *ebiten.Image:
 		return NewFromImage(ebitenImageToImage(v))
+	case image.Image:
+		return NewFromImage(v)
 	case *Selector:
 		return NewFromImage(v.Image())
 	default:
@@ -214,26 +220,40 @@ func (e *Ebitest) getSelector(s interface{}) *Selector {
 	}
 }
 
-// findSelector returns a Selector from ss if found
+// findSelector returns a Selector from ss if found. `all` will basically mean it'll return all of them
 func (e *Ebitest) findSelector(sc image.Image, ss interface{}) (*Selector, bool) {
-	sel := e.getSelector(ss)
+	sels := e.findSelectors(sc, ss, !findAllSelectors)
+	if len(sels) == 0 {
+		return nil, false
+	}
+	return sels[0], true
+}
+
+// findSelector returns a Selector from ss if found. `all` will basically mean it'll return all of them
+func (e *Ebitest) findSelectors(sc image.Image, ss interface{}, all bool) []*Selector {
+	selectors := make([]*Selector, 0)
+	bsel := e.getSelector(ss)
 
 	sx := sc.Bounds().Dx()
 	sy := sc.Bounds().Dy()
 	for x := range sx {
 		for y := range sy {
-			if hasImageAt(sc, sel.Image(), x, y) {
+			if hasImageAt(sc, bsel.Image(), x, y) {
+				sel := NewFromImage(bsel.Image())
 				selx := sel.Image().Bounds().Dx()
 				sely := sel.Image().Bounds().Dy()
 
 				sel.rect = image.Rect(x, y, x+selx, y+sely)
 				sel.PingPong = e.PingPong
-				return sel, true
+				selectors = append(selectors, sel)
+				if !all {
+					return selectors
+				}
 			}
 		}
 	}
 
-	return sel, false
+	return selectors
 }
 
 // dumpErrorImages dumps a composition of the 2 images into 1 so it displays

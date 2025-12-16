@@ -89,7 +89,7 @@ func (pp *PingPong) KeyTapPong(ttt *TicTacToe, g *Game) {
 		b := <-pp.keyTapPing
 		keys := b.KeyTap.Keys
 		key := ebitenToRobotgoKeys[keys[0]]
-		args := make([]interface{}, 0, 0)
+		args := make([]interface{}, 0)
 		for _, k := range keys[1:] {
 			args = append(args, ebitenToRobotgoKeys[k])
 		}
@@ -98,7 +98,7 @@ func (pp *PingPong) KeyTapPong(ttt *TicTacToe, g *Game) {
 		ttt.Tic()
 		go func() {
 			<-ttt.toe
-			g.keyTapKeys = make([]ebiten.Key, 0, 0)
+			g.keyTapKeys = make([]ebiten.Key, 0)
 			pp.keyTapPong <- struct{}{}
 		}()
 	}

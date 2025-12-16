@@ -29,15 +29,23 @@ func TestGameButton(t *testing.T) {
 	et.PingPong.Ping()
 
 	text1 := "Click Me"
+	text1_2 := "Click Me 2"
 	text2 := "Clicked Me"
 
 	t1s, _ := et.Should(t, text1)
+	t1_2s, _ := et.Should(t, text1_2)
 	et.ShouldNot(t, text2)
 
 	t1s.Click()
 
-	et.ShouldNot(t, text1)
+	et.Should(t, text1_2)
 	et.Should(t, text2)
+
+	t1_2s.Click()
+
+	et.ShouldNot(t, text1)
+	et.ShouldNot(t, text1_2)
+	assert.Len(t, et.GetAll(text2), 2)
 
 	//et.KeyTap(ebiten.KeyShift, ebiten.KeyI)
 	et.KeyTap(ebiten.KeyI, ebiten.KeyShift)
