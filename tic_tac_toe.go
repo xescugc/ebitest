@@ -21,18 +21,33 @@ func (ttt *TicTacToe) Tic() {
 	ttt.tic <- struct{}{}
 }
 
+// HasTic checks if Tic has content
+func (ttt *TicTacToe) HasTic() bool {
+	return len(ttt.tic) != 0
+}
+
 // Tac second
 func (ttt *TicTacToe) Tac() {
-	if len(ttt.tic) != 0 {
+	if ttt.HasTic() {
 		<-ttt.tic
 		ttt.tac <- struct{}{}
 	}
 }
 
+// HasTac checks if Tac has content
+func (ttt *TicTacToe) HasTac() bool {
+	return len(ttt.tac) != 0
+}
+
 // Toe third
 func (ttt *TicTacToe) Toe() {
-	if len(ttt.tac) != 0 {
+	if ttt.HasTac() {
 		<-ttt.tac
 		ttt.toe <- struct{}{}
 	}
+}
+
+// HasToe checks if Toe has content
+func (ttt *TicTacToe) HasToe() bool {
+	return len(ttt.toe) != 0
 }

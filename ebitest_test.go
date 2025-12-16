@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/go-vgo/robotgo"
+	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/xescugc/ebitest"
 	"github.com/xescugc/ebitest/testdata"
@@ -37,4 +38,8 @@ func TestGameButton(t *testing.T) {
 
 	et.ShouldNot(t, text1)
 	et.Should(t, text2)
+
+	//et.KeyTap(ebiten.KeyShift, ebiten.KeyI)
+	et.KeyTap(ebiten.KeyI, ebiten.KeyShift)
+	assert.True(t, g.ClickedShiftI)
 }

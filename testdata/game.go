@@ -20,7 +20,8 @@ type Game struct {
 	ui  *ebitenui.UI
 	btn *widget.Button
 
-	Clicked bool
+	Clicked       bool
+	ClickedShiftI bool
 }
 
 func NewGame() *Game {
@@ -98,6 +99,10 @@ func (g *Game) Layout(outsideWidth int, outsideHeight int) (int, int) {
 func (g *Game) Update() error {
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		g.Clicked = true
+	}
+
+	if ebiten.IsKeyPressed(ebiten.KeyShift) && ebiten.IsKeyPressed(ebiten.KeyI) {
+		g.ClickedShiftI = true
 	}
 
 	// update the UI
