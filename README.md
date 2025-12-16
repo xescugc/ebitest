@@ -1,3 +1,7 @@
+<p align="center">
+    <img src="docs/ebitest.png" width=25% height=25%>
+</p>
+
 # Ebitest
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/xescugc/ebitest.svg)](https://pkg.go.dev/github.com/xescugc/ebitest)
