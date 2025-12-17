@@ -32,9 +32,15 @@ func TestGameButton(t *testing.T) {
 	text1_2 := "Click Me 2"
 	text2 := "Clicked Me"
 
-	t1s, _ := et.Should(t, text1)
+	t1s := et.Must(t, text1)
 	t1_2s, _ := et.Should(t, text1_2)
+
+	// Fails
+	et.ShouldNot(t, text1_2)
 	et.ShouldNot(t, text2)
+
+	// Fails
+	et.Should(t, text2)
 
 	t1s.Click()
 
@@ -47,7 +53,6 @@ func TestGameButton(t *testing.T) {
 	et.ShouldNot(t, text1_2)
 	assert.Len(t, et.GetAll(text2), 2)
 
-	//et.KeyTap(ebiten.KeyShift, ebiten.KeyI)
 	et.KeyTap(ebiten.KeyI, ebiten.KeyShift)
 	assert.True(t, g.ClickedShiftI)
 }
