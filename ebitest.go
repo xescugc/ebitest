@@ -24,6 +24,10 @@ const (
 	findAllSelectors = true
 )
 
+var (
+	emptyRec image.Rectangle
+)
+
 type Ebitest struct {
 	game     *Game
 	PingPong *PingPong
@@ -116,7 +120,7 @@ func (e *Ebitest) Should(t *testing.T, s interface{}) (*Selector, bool) {
 	if !ok {
 		msg := "selector not found"
 		if e.options.dumpErrorImages {
-			p := dumpErrorImages(sc, sel.Image())
+			p := dumpErrorImages(sc, sel)
 			msg += "\nimage at: " + p
 		}
 		assert.Fail(t, msg)
@@ -140,7 +144,7 @@ func (e *Ebitest) ShouldNot(t *testing.T, s interface{}) bool {
 
 	msg := "selector found"
 	if e.options.dumpErrorImages {
-		p := dumpErrorImages(sc, sel.Image())
+		p := dumpErrorImages(sc, sel)
 		msg += "\nimage at: " + p
 	}
 	assert.Fail(t, msg)
@@ -159,7 +163,7 @@ func (e *Ebitest) Must(t *testing.T, s interface{}) *Selector {
 	if !ok {
 		msg := "selector not found"
 		if e.options.dumpErrorImages {
-			p := dumpErrorImages(sc, sel.Image())
+			p := dumpErrorImages(sc, sel)
 			msg += "\nimage at: " + p
 		}
 		require.Fail(t, msg)
@@ -184,7 +188,7 @@ func (e *Ebitest) MustNot(t *testing.T, s interface{}) {
 
 	msg := "selector found"
 	if e.options.dumpErrorImages {
-		p := dumpErrorImages(sc, sel.Image())
+		p := dumpErrorImages(sc, sel)
 		msg += "\nimage at: " + p
 	}
 	require.Fail(t, msg)
@@ -193,7 +197,9 @@ func (e *Ebitest) MustNot(t *testing.T, s interface{}) {
 // GetAll returns all the repeated instances of s or none if nothing is found
 func (e *Ebitest) GetAll(s interface{}) []*Selector {
 	sc := e.game.GetScreen()
-	return e.findSelectors(sc, s, findAllSelectors)
+	sels, _ := e.findSelectors(sc, s, findAllSelectors)
+
+	return sels
 }
 
 // KeyTap taps all the keys at once
@@ -222,15 +228,15 @@ func (e *Ebitest) getSelector(s interface{}) *Selector {
 
 // findSelector returns a Selector from ss if found. `all` will basically mean it'll return all of them
 func (e *Ebitest) findSelector(sc image.Image, ss interface{}) (*Selector, bool) {
-	sels := e.findSelectors(sc, ss, !findAllSelectors)
+	sels, sel := e.findSelectors(sc, ss, !findAllSelectors)
 	if len(sels) == 0 {
-		return nil, false
+		return sel, false
 	}
 	return sels[0], true
 }
 
 // findSelector returns a Selector from ss if found. `all` will basically mean it'll return all of them
-func (e *Ebitest) findSelectors(sc image.Image, ss interface{}, all bool) []*Selector {
+func (e *Ebitest) findSelectors(sc image.Image, ss interface{}, all bool) ([]*Selector, *Selector) {
 	selectors := make([]*Selector, 0)
 	bsel := e.getSelector(ss)
 
@@ -247,47 +253,13 @@ func (e *Ebitest) findSelectors(sc image.Image, ss interface{}, all bool) []*Sel
 				sel.PingPong = e.PingPong
 				selectors = append(selectors, sel)
 				if !all {
-					return selectors
+					return selectors, bsel
 				}
 			}
 		}
 	}
 
-	return selectors
-}
-
-// dumpErrorImages dumps a composition of the 2 images into 1 so it displays
-// what was checked
-func dumpErrorImages(s, i image.Image) string {
-	sb := s.Bounds()
-	ib := i.Bounds()
-	x := sb.Dx() + ib.Dx()
-	y := sb.Dy()
-	img := image.NewRGBA(image.Rect(0, 0, x, y))
-
-	draw.Draw(img, sb, s, image.Point{}, draw.Over)
-	draw.Draw(img, image.Rect(sb.Dx(), 0, x, ib.Dy()), i, image.Point{}, draw.Over)
-
-	u, _ := uuid.NewV7()
-
-	ip := filepath.Join(baseDumpFoler, u.String()+".png")
-	writeImage(ip, img)
-
-	wd, _ := os.Getwd()
-	return filepath.Join(wd, ip)
-}
-
-// writeImage writes on the path the image i
-func writeImage(path string, i image.Image) {
-	f, err := os.Create(path)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer f.Close()
-
-	if err := png.Encode(f, i); err != nil {
-		log.Fatal(err)
-	}
+	return selectors, bsel
 }
 
 // hasImageAt checks if the image sub is image i at the ix, iy
@@ -295,14 +267,14 @@ func hasImageAt(i, sub image.Image, ix, iy int) bool {
 	sx, sy := sub.Bounds().Dx(), sub.Bounds().Dy()
 	for x := range sx {
 		for y := range sy {
-			ic := toNRGBA(i.At(ix+x, iy+y))
-			sc := toNRGBA(sub.At(x, y))
-			sr, sg, sb, sa := sc.RGBA()
+			sc := sub.At(x, y)
+			ic := i.At(ix+x, iy+y)
 
+			nsc := sc.(color.NRGBA)
 			// If the source it's transparent we ignore it
 			// we want to only compare colors so we consider
 			// it as good
-			if sa == 0 || (sr == 0 && sg == 0 && sb == 0) {
+			if nsc.A != 255 {
 				continue
 			}
 
@@ -321,21 +293,59 @@ func equalColors(c1, c2 color.Color) bool {
 	return r1 == r2 && g1 == g2 && b1 == b2
 }
 
-// toNRGBA convers a pre-multiplied alpha color to a non pre-multiplied alpha one
-func toNRGBA(c color.Color) color.Color {
-	r, g, b, a := c.RGBA()
-	if a == 0 {
-		return color.NRGBA{0, 0, 0, 0}
+// dumpErrorImages dumps a composition of the 2 images into 1 so it displays
+// what was checked
+func dumpErrorImages(s image.Image, sel *Selector) string {
+	i := sel.Image()
+	sb := s.Bounds()
+	ib := i.Bounds()
+	x := sb.Dx() + ib.Dx()
+	y := sb.Dy()
+	img := image.NewRGBA(image.Rect(0, 0, x, y))
+
+	draw.Draw(img, sb, s, image.Point{}, draw.Over)
+	draw.Draw(img, image.Rect(sb.Dx(), 0, x, ib.Dy()), i, image.Point{}, draw.Over)
+
+	if sel.Rec() != emptyRec {
+		drawRectangle(img, sel.Rec(), 2)
 	}
 
-	// Since color.Color is alpha pre-multiplied, we need to divide the
-	// RGB values by alpha again in order to get back the original RGB.
-	r *= 0xffff
-	r /= a
-	g *= 0xffff
-	g /= a
-	b *= 0xffff
-	b /= a
+	u, _ := uuid.NewV7()
 
-	return color.NRGBA{uint8(r / 65535), uint8(g / 65535), uint8(b / 65535), 255}
+	ip := filepath.Join(baseDumpFoler, u.String()+".png")
+	writeImage(ip, img)
+
+	wd, _ := os.Getwd()
+	return filepath.Join(wd, ip)
+}
+
+// drawRectangle will draw in the image(img) the rectangel(rec) with thiknes
+func drawRectangle(img *image.RGBA, rec image.Rectangle, thickness int) {
+	col := color.RGBA{255, 0, 0, 255}
+
+	for t := 0; t < thickness; t++ {
+		// draw horizontal lines
+		for x := rec.Min.X; x <= rec.Max.X; x++ {
+			img.Set(x, rec.Min.Y+t, col)
+			img.Set(x, rec.Max.Y-t, col)
+		}
+		// draw vertical lines
+		for y := rec.Min.Y; y <= rec.Max.Y; y++ {
+			img.Set(rec.Min.X+t, y, col)
+			img.Set(rec.Max.X-t, y, col)
+		}
+	}
+}
+
+// writeImage writes on the path the image i
+func writeImage(path string, i image.Image) {
+	f, err := os.Create(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+
+	if err := png.Encode(f, i); err != nil {
+		log.Fatal(err)
+	}
 }

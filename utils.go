@@ -9,7 +9,7 @@ import (
 // ebitenImageToImage converts an ebiten.Image to an image.Image
 func ebitenImageToImage(ei *ebiten.Image) image.Image {
 	b := ei.Bounds()
-	img := image.NewGray(image.Rect(0, 0, b.Dx(), b.Dy()))
+	img := image.NewNRGBA(image.Rect(0, 0, b.Dx(), b.Dy()))
 
 	ix, iy := ei.Bounds().Dx(), ei.Bounds().Dy()
 	for x := range ix {

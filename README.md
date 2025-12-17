@@ -91,27 +91,42 @@ func TestGameUI(t *testing.T) {
 }
 ```
 
-The output of this test (that fails) is the following:
+An output could be for example
 
 ```
---- FAIL: TestGameUI (7.52s)
-    ebitest_test.go:28: 
-                Error Trace:    /home/xescugc/repos/ebitest/ebitest.go:113
-                                                        /home/xescugc/repos/ebitest/ebitest_test.go:28
+--- FAIL: TestGameButton (9.34s)
+    ebitest_test.go:39: 
+                Error Trace:    ebitest.go:150
+                                                        ebitest_test.go:39
+                Error:          selector found
+                                image at: ebitest/_ebitest_dump/019b2e81-8d9a-7bb7-ba16-639756d11e58.png
+                Test:           TestGameButton
+    ebitest_test.go:43: 
+                Error Trace:    ebitest.go:126
+                                                        ebitest_test.go:43
                 Error:          selector not found
-                                image at: _ebitest_dump/019b1537-1c60-7041-ad54-0297ea4b0eef.png
-                Test:           TestGameUI
+                                image at: ebitest/_ebitest_dump/019b2e81-966e-7715-8c5f-6a6acc92720c.png
+                Test:           TestGameButton
 FAIL
-FAIL    github.com/xescugc/ebitest      7.578s
+FAIL    github.com/xescugc/ebitest      9.393s
 FAIL
-make: *** [Makefile:7: test] Error 1
+make: *** [Makefile:7: test] Error 
 ```
 
-And if you open the `_ebitest_dump/019b1537-1c60-7041-ad54-0297ea4b0eef.png` (on the current path) you see
+And then you have the `image at: ebitest/_ebitest_dump/019b2e81-8d9a-7bb7-ba16-639756d11e58.png` that expects to not find something, and it finds
+it and reports the image with the highlight of what was found. At the top right you can see what was looking for.
 
 <p align="center">
-    <img src="docs/error_image.png" width=50% height=50%>
+    <img src="docs/should_not.png" width=50% height=50%>
 </p>
+
+And the `image at: ebitest/_ebitest_dump/019b2e81-966e-7715-8c5f-6a6acc92720c.png` that expect to find something that was not found. At the top right
+you can see what was looking for.
+
+<p align="center">
+    <img src="docs/should.png" width=50% height=50%>
+</p>
+
 
 ## Run it on a CI
 
@@ -132,6 +147,11 @@ Due to the nature of this test (the game is running on a goroutine) there may be
 so an expectation may randomly fail.
 
 I kind of fixed it (100 consecutive test pass) using a custom [PingPong](./ping_pong.go) and [TicTacToe](./tic_tac_toe.go) that basically forces a context switch and synchronizes Input+Game.Update+Game.Draw but it still fails in low resource like GitHub [Actions](https://github.com/xescugc/ebitest/actions) for example.
+
+3/ Size of the screen
+
+By default the screen is of `640x480` if using `xvfb`. To make it bigger you can directly increase the size with `ebiten.SetWindowSize(750, 750)`, though setting big sizes
+I've seen it causes some issues that the click are not where they are expected to be and are a bit off and miss which causes errors.
 
 ## Plans
 

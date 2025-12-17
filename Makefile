@@ -3,8 +3,8 @@ help: ## Show this help
 	@grep -F -h "##" $(MAKEFILE_LIST) | grep -F -v grep -F | sed -e 's/:.*##/:##/' | column -t -s '##'
 
 .PHONY: test
-test: ## Runs the test
-	@xvfb-run go test ./... $(ARGS)
+test:
+	@xvfb-run go test ./...
 
 .PHONY: pprof
 pprof: ## Runs pprof server for 'cpu.out'
